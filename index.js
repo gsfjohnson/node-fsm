@@ -3,12 +3,14 @@ const Assert = require('assert');
 const EventEmitter = require('node:events');
 
 // debug if appropriate
-//let debug; try { debug = require('debug')('fsm'); }
-//catch (e) { debug = function(){}; } // empty stub
+let debug; try { debug = require('debug')('fsm'); }
+catch (e) { debug = function(){}; } // empty stub
 
 const _state = Symbol('state');
 const _map = Symbol('next');
 const _previous = Symbol('previous');
+const _emitter = Symbol('emitter');
+const _emit = Symbol('emit');
 //const _default = Symbol('default');
 
 const isSet = s => s instanceof Set;
@@ -17,7 +19,7 @@ const isMap = m => m instanceof Map;
 /**
  * Finite state machine
  */
-class FiniteStateMachine extends EventEmitter
+class FiniteStateMachine
 {
   /**
    * Constructor
@@ -26,14 +28,17 @@ class FiniteStateMachine extends EventEmitter
    */
   constructor(next, start = null)
   {
-    super();
-
     if (!isMap(next)) throw new TypeError('next parameter must be Map{}');
     if (typeof start !== 'string' && start !== null) throw new TypeError('start parameter must be a String or null');
+
+    //super();
+
+    debug('new: initial = '+start);
 
     this[_state] = start;
     this[_previous] = null;
     this[_map] = next;
+    this[_emitter] = new EventEmitter();
   }
 
   get state() { return this[_state] }
@@ -42,6 +47,8 @@ class FiniteStateMachine extends EventEmitter
 
   next(state)
   {
+    debug('next: '+state);
+
     if (typeof state != 'string') {
       throw new TypeError('Parameter state must be string');
     }
@@ -60,8 +67,20 @@ class FiniteStateMachine extends EventEmitter
     this[_previous] = this[_state];
     this[_state] = state;
 
-    this.emit(state);
+    this[_emit](state);
+
     return true;
+  }
+
+  /* emitter methods */
+  on(state,cb) { this[_emitter].on(state,cb) }
+  once(state,cb) { this[_emitter].once(state,cb) }
+  off(state,cb) { this[_emitter].off(state,cb) }
+
+  /* private emit */
+  [_emit](state,...arr) {
+    debug('emit',state);
+    this[_emitter].emit(state,...arr);
   }
 }
 
