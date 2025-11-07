@@ -1,4 +1,5 @@
 
+const Assert = require('assert');
 const EventEmitter = require('node:events');
 
 // debug if appropriate
@@ -102,20 +103,17 @@ function createTransitions(obj) {
   debug('transitions:',obj);
   return new Transitions(obj);
 }
-
-function createStates(...states) {
-  debug('states:',...states);
-  if (states.length === 0) {
-    throw new Error('Missing state transition');
-  }
-  return new States(...states);
-}
 */
+
+function createSet(...states) {
+  states.forEach( s => { Assert(typeof s == 'string') });
+  return new Set(states);
+}
 
 module.exports = {
   createFsm,
   //createTransitions,
-  //createStates,
+  createSet,
   FiniteStateMachine,
   //Transitions,
   //States,

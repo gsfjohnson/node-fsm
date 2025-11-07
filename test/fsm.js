@@ -3,13 +3,13 @@ const Assert = require('assert');
 
 const FSM = require('..');
 
-describe('FSM', () =>
+describe('FiniteStateMachine', () =>
 {
   let INIT = 'INIT';
   let ACTION = 'ACTION';
   let FINISHED = 'FINISHED';
   let fsm;
-  let possible;
+  let states;
   let transitions;
 
   it('transitions = new Map()', () =>
@@ -19,28 +19,37 @@ describe('FSM', () =>
     transitions = res;
   });
 
-  it('transitions.set( INIT, new Set([ ACTION ])) should return true', () =>
+  it('states = createSet(ACTION) should return Set([ACTION])', () =>
   {
-    let res = transitions.set(INIT, new Set([ ACTION ]) );
+    let res = FSM.createSet(ACTION);
+    Assert(res instanceof Set);
+    Assert(res.has(ACTION));
+    states = res;
+  });
+
+  it('transitions.set( INIT, states ) should return true', () =>
+  {
+    let res = transitions.set(INIT, states );
     Assert(res);
   });
 
-  it('transitions.set( ACTION, new Set([ FINISHED ])) should return true', () =>
+  it('transitions.set( ACTION, createSet(FINISHED) ) should return true', () =>
   {
     //let arr = [
     //  [ INIT, new Set([ACTION]) ],
     //  [ ACTION, new Set([FINISHED]) ],
     //  [ FINISHED, new Set([INIT]) ],
     //];
-    let res = transitions.set(ACTION, new Set([ FINISHED ]) );
+    let res = transitions.set(ACTION, FSM.createSet(FINISHED) );
     Assert(res);
   });
 
-  it('fsm = FSM.createFsm(transitions,INIT) should return FSM.FiniteStateMachine{}', () =>
+  it('fsm = createFsm(transitions,INIT) should return FiniteStateMachine{}', () =>
   {
     let res = FSM.createFsm(transitions,INIT);
     Assert(res instanceof FSM.FiniteStateMachine);
     fsm = res;
+    //console.log(fsm)
   });
 
   it('fsm.once(ACTION) should fire when fsm.next(ACTION) called', function()
