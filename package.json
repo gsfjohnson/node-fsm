@@ -1,0 +1,19 @@
+{
+  "name": "@gsfjohnson/fsm",
+  "version": "0.0.1",
+  "description": "Finite State Machine",
+  "main": "index.js",
+  "scripts": {
+    "test": "mocha"
+  },
+  "author": "gsfjohnson",
+  "license": "UNLICENSED",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/gsfjohnson/node-fsm.git"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com/gsfjohnson"
+  },
+  "devDependencies": {}
+}
