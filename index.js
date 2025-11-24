@@ -11,10 +11,20 @@ const _map = Symbol('next');
 const _previous = Symbol('previous');
 const _emitter = Symbol('emitter');
 const _emit = Symbol('emit');
-//const _default = Symbol('default');
+const _id = Symbol('id');
 
 const isSet = s => s instanceof Set;
 const isMap = m => m instanceof Map;
+const isString = s => typeof s == 'string';
+const isObject = o => typeof o == 'object' && o !== null && !Array.isArray(o);
+const rebug = (id,...a) => {
+  if (isString(id)) {
+    let colored = "\x1b[90m"+id+"\x1b[0m";
+    debug(colored,...a);
+    return;
+  }
+  debug(...a)
+};
 
 /**
  * Finite state machine
@@ -26,28 +36,28 @@ class FiniteStateMachine
    * @param {Map} next State map.
    * @param {String} start Initial state.
    */
-  constructor(next, start = null)
+  constructor(...arr)
   {
-    if (!isMap(next)) throw new TypeError('next parameter must be Map{}');
-    if (typeof start !== 'string' && start !== null) throw new TypeError('start parameter must be a String or null');
+    const options = parseConstructorParameters(...arr);
 
-    //super();
-
-    debug('new: initial = '+start);
-
-    this[_state] = start;
+    this[_state] = options.start;
     this[_previous] = null;
-    this[_map] = next;
+    this[_map] = options.next;
+    this[_id] = options.id || null;
     this[_emitter] = new EventEmitter();
+
+    rebug(this.id,'starting',options);
   }
+
+  get id() { return this[_id] }
 
   get state() { return this[_state] }
 
   get previous() { return this[_previous] }
 
-  next(state)
+  next(state,...arr)
   {
-    debug('next: '+state);
+    rebug(this.id,'--->',state);
 
     if (typeof state != 'string') {
       throw new TypeError('Parameter state must be string');
@@ -67,7 +77,7 @@ class FiniteStateMachine
     this[_previous] = this[_state];
     this[_state] = state;
 
-    this[_emit](state);
+    this[_emit](state,...arr);
 
     return true;
   }
@@ -79,7 +89,7 @@ class FiniteStateMachine
 
   /* private emit */
   [_emit](state,...arr) {
-    debug('emit',state);
+    //rebug(this.id,'emit',state);
     this[_emitter].emit(state,...arr);
   }
 }
@@ -124,9 +134,28 @@ function createTransitions(obj) {
 }
 */
 
+function parseConstructorParameters(...arr)
+{
+  let options = { start: null }; // default
+  arr.forEach( (el) => {
+    if (isMap(el)) options.next = el;
+    else if (isString(el) || el === null) options.start = el;
+    else if (isObject(el)) Object.assign(options,el);
+    else throw new TypeError('invalid parameter: '+ el);
+  });
+  if (!isMap(options.next)) throw new TypeError('parameter `next` must be Map{}');
+  if (!isString(options.start) && start !== null) throw new TypeError('parameter `start` must be a String or null or not defined');
+  if (options.id && !isString(options.id)) throw new TypeError('parameter `id` must be string or not defined');
+  return options;
+}
+
 function createSet(...states) {
   states.forEach( s => { Assert(typeof s == 'string') });
   return new Set(states);
+}
+
+function isFSM(val) {
+  return (val instanceof FiniteStateMachine) ? true : false;
 }
 
 module.exports = {
@@ -136,4 +165,6 @@ module.exports = {
   FiniteStateMachine,
   //Transitions,
   //States,
+  isFSM,
+  is: isFSM,
 };
