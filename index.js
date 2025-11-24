@@ -100,8 +100,8 @@ class FiniteStateMachine
  * @param {String|Null} start Initial state, default is null.
  * @returns {FiniteStateMachine}
  */
-function createFsm(next, start = null) {
-  return new FiniteStateMachine(next, start);
+function createFsm(...arr) {
+  return new FiniteStateMachine(...arr);
 }
 
 /*
